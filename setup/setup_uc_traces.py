@@ -8,7 +8,7 @@ import mlflow
 from mlflow.entities.trace_location import UnityCatalog
 
 mlflow.set_tracking_uri("databricks")
-os.environ["MLFLOW_TRACING_SQL_WAREHOUSE_ID"] = "572f86cbedbdac89"
+os.environ["MLFLOW_TRACING_SQL_WAREHOUSE_ID"] = os.getenv("MLFLOW_TRACING_SQL_WAREHOUSE_ID")
 
 experiment = mlflow.set_experiment(
     experiment_name="/Shared/databrickstv-agent-v2",

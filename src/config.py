@@ -74,7 +74,7 @@ class Settings:
     """Immutable application settings pulled from the environment."""
 
     warehouse_id: str = field(
-        default_factory=lambda: os.environ.get("WAREHOUSE_ID", "572f86cbedbdac89")
+        default_factory=lambda: os.environ.get("WAREHOUSE_ID", os.getenv("WAREHOUSE_ID"))
     )
     catalog: str = field(
         default_factory=lambda: os.environ.get("CATALOG", "labelbricks_test_catalog")

@@ -8,7 +8,7 @@ command:
 
 env:
   - name: WAREHOUSE_ID
-    value: "572f86cbedbdac89"
+    valueFrom: "sql-warehouse"
   - name: CATALOG
     value: "labelbricks_test_catalog"
   - name: SCHEMA
@@ -18,4 +18,4 @@ env:
   - name: MLFLOW_EXPERIMENT_NAME
     value: "/Shared/databrickstv-agent-v2"
   - name: MLFLOW_TRACING_SQL_WAREHOUSE_ID
-    value: "572f86cbedbdac89"
+    valueFrom: "sql-warehouse"
