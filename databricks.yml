@@ -1,0 +1,19 @@
+bundle:
+  name: databrickstv-agent-app
+
+targets:
+  fevm:
+    default: true
+    mode: development
+    workspace:
+      profile: fevm-labelbricks-test
+
+resources:
+  apps:
+    databrickstv_agent:
+      name: "databrickstv-agent-${bundle.target}"
+      description: "DatabricksTV content & ad recommendation agent"
+      source_code_path: .
+      permissions:
+        - level: CAN_USE
+          group_name: users

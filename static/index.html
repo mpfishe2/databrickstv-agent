@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DatabricksTV Agent</title>
+  <style>
+    /* ------------------------------------------------------------------ */
+    /* Reset & Variables                                                    */
+    /* ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #003159;
+      --red:     #FF3929;
+      --orange:  #FF7034;
+      --bg:      #0a1628;
+      --surface: #112240;
+      --surface2:#1a3055;
+      --border:  #233c5e;
+      --text:    #e6f0ff;
+      --text2:   #8fa8cc;
+      --user-bg: #1e4a7a;
+      --agent-bg:#162d4f;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              "Helvetica Neue", Arial, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Layout                                                              */
+    /* ------------------------------------------------------------------ */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Header                                                              */
+    /* ------------------------------------------------------------------ */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--navy);
+      border-bottom: 3px solid var(--red);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-text span {
+      color: var(--red);
+    }
+
+    .user-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-input-wrap label {
+      font-size: 13px;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    #user-id {
+      width: 100px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    }
+
+    #user-id:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Messages                                                            */
+    /* ------------------------------------------------------------------ */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .msg {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.55;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--user-bg);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: var(--agent-bg);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .msg.system {
+      align-self: center;
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      text-align: center;
+      padding: 4px 12px;
+    }
+
+    .msg .tool-tag {
+      display: inline-block;
+      background: rgba(255, 112, 52, 0.15);
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    /* Simple markdown-ish formatting */
+    .msg strong, .msg b { color: #fff; }
+    .msg code {
+      background: rgba(255,255,255,0.08);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    .msg pre {
+      background: rgba(0,0,0,0.3);
+      padding: 10px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+    .msg pre code {
+      background: none;
+      padding: 0;
+    }
+
+    /* Typing indicator */
+    .typing-dots {
+      display: flex;
+      gap: 5px;
+      padding: 4px 0;
+    }
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: var(--orange);
+      border-radius: 50%;
+      animation: blink 1.4s infinite both;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Welcome                                                             */
+    /* ------------------------------------------------------------------ */
+    .welcome {
+      text-align: center;
+      padding: 60px 20px 20px;
+    }
+
+    .welcome h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .welcome p {
+      color: var(--text2);
+      font-size: 14px;
+      max-width: 500px;
+      margin: 0 auto 24px;
+      line-height: 1.5;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .quick-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .quick-btn:hover {
+      background: var(--user-bg);
+      border-color: var(--orange);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Input Bar                                                           */
+    /* ------------------------------------------------------------------ */
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      padding: 14px 20px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #msg-input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    #msg-input:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    #msg-input::placeholder { color: var(--text2); }
+
+    #send-btn {
+      padding: 0 20px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    #send-btn:hover { opacity: 0.9; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ------------------------------------------------------------------ */
+    /* Responsive                                                          */
+    /* ------------------------------------------------------------------ */
+    @media (max-width: 600px) {
+      .msg { max-width: 92%; }
+      header { flex-direction: column; gap: 10px; }
+      .quick-actions { flex-direction: column; }
+      .quick-btn { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">TV</div>
+        <div class="logo-text">Databricks<span>TV</span> Agent</div>
+      </div>
+      <div class="user-input-wrap">
+        <label for="user-id">Viewer ID</label>
+        <input id="user-id" type="text" placeholder="U0042" value="U0042" spellcheck="false" />
+      </div>
+    </header>
+
+    <!-- Chat area -->
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <h2>Welcome to DatabricksTV Agent</h2>
+        <p>
+          I can recommend content, check brand safety for ad placements,
+          explore viewer and content data, and log feedback.
+        </p>
+        <div class="quick-actions">
+          <button class="quick-btn" data-msg="What should user U0042 watch next?">Recommend content</button>
+          <button class="quick-btn" data-msg="Is campaign AC001 brand-safe for content C0123?">Brand safety check</button>
+          <button class="quick-btn" data-msg="What are the top 10 most popular genres by average popularity score?">Explore data</button>
+          <button class="quick-btn" data-msg="Which viewer segments have the highest churn risk?">Segment analysis</button>
+          <button class="quick-btn" data-msg="Show me the top 5 brands by campaign budget tier and their target segments.">Ad campaign overview</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-bar">
+      <textarea id="msg-input" rows="1" placeholder="Ask about content, ads, viewers, or data..." autofocus></textarea>
+      <button id="send-btn">Send</button>
+    </div>
+
+  </div>
+
+  <script>
+    /* ================================================================== */
+    /* State                                                               */
+    /* ================================================================== */
+    const messagesEl = document.getElementById('messages');
+    const welcomeEl  = document.getElementById('welcome');
+    const inputEl    = document.getElementById('msg-input');
+    const sendBtn    = document.getElementById('send-btn');
+    const userIdEl   = document.getElementById('user-id');
+    let busy = false;
+
+    /* ================================================================== */
+    /* Helpers                                                             */
+    /* ================================================================== */
+
+    /** Light markdown-ish formatting (bold, code, pre blocks). */
+    function formatText(raw) {
+      let html = raw;
+      // Escape HTML
+      html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Code blocks: ```...```
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Bold **text**
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      return html;
+    }
+
+    function addMessage(role, text, extra) {
+      if (welcomeEl) welcomeEl.style.display = 'none';
+
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+
+      let inner = '';
+      if (extra && extra.toolTag) {
+        inner += '<div class="tool-tag">' + extra.toolTag + '</div>';
+      }
+      inner += formatText(text);
+      div.innerHTML = inner;
+
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return div;
+    }
+
+    function addTyping() {
+      const div = document.createElement('div');
+      div.className = 'msg assistant';
+      div.id = 'typing';
+      div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing');
+      if (el) el.remove();
+    }
+
+    /* ================================================================== */
+    /* Chat API                                                            */
+    /* ================================================================== */
+
+    async function sendMessage(text) {
+      if (busy || !text.trim()) return;
+      busy = true;
+      sendBtn.disabled = true;
+
+      // Show user message
+      addMessage('user', text);
+      inputEl.value = '';
+      autoResize();
+
+      // Show typing indicator
+      addTyping();
+
+      const userId = userIdEl.value.trim() || null;
+
+      try {
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, user_id: userId }),
+        });
+
+        removeTyping();
+
+        if (!resp.ok) {
+          const err = await resp.text();
+          addMessage('system', 'Error ' + resp.status + ': ' + err);
+        } else {
+          const data = await resp.json();
+          addMessage('assistant', data.response);
+          if (data.error) {
+            console.error('Agent error:', data.error);
+          }
+        }
+      } catch (err) {
+        removeTyping();
+        addMessage('system', 'Network error: ' + err.message);
+      } finally {
+        busy = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
+    }
+
+    /* ================================================================== */
+    /* Auto-resize textarea                                                */
+    /* ================================================================== */
+
+    function autoResize() {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    }
+
+    inputEl.addEventListener('input', autoResize);
+
+    /* ================================================================== */
+    /* Event listeners                                                     */
+    /* ================================================================== */
+
+    sendBtn.addEventListener('click', function() { sendMessage(inputEl.value); });
+
+    inputEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(inputEl.value);
+      }
+    });
+
+    // Quick action buttons
+    document.querySelectorAll('.quick-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var msg = btn.dataset.msg;
+        if (msg) sendMessage(msg);
+      });
+    });
+  </script>
+</body>
+</html>
