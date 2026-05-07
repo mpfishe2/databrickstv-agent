@@ -3,3 +3,5 @@ __pycache__/
 .vscode/
 .env
 .databricks/
+PROCESS_FLOW.md
+IMPLEMENTATION_GUIDE.html

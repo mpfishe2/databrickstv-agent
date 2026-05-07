@@ -2,8 +2,13 @@ bundle:
   name: databrickstv-agent-app
 
 targets:
-  fevm:
+  staging:
     default: true
+    mode: development
+    workspace:
+      profile: fevm-labelbricks-test
+
+  prod:
     mode: development
     workspace:
       profile: fevm-labelbricks-test
