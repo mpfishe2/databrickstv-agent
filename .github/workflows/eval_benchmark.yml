@@ -9,6 +9,10 @@ env:
   DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
   WAREHOUSE_ID: ${{ secrets.WAREHOUSE_ID }}
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   eval:
     runs-on: self-hosted
