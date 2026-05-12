@@ -41,4 +41,73 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run eval benchmark
-        run: pytest tests/eval_benchmark.py -v
+        run: pytest tests/eval_benchmark.py -v 2>&1 | tee eval_output.txt
+
+      - name: Post eval results to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('eval_output.txt', 'utf8');
+
+            // Extract metrics line
+            const metricsMatch = output.match(/Metrics: ({.*})/);
+            const metrics = metricsMatch ? JSON.parse(metricsMatch[1].replace(/'/g, '"')) : {};
+
+            // Extract MLflow eval link
+            const linkMatch = output.match(/View the evaluation results at (https:\/\/\S+)/);
+            const evalLink = linkMatch ? linkMatch[1] : null;
+
+            // Build status
+            const passed = output.includes('1 passed');
+            const status = passed ? '✅ PASSED' : '❌ FAILED';
+
+            // Format metrics table
+            let metricsTable = '| Scorer | Score | Threshold |\n|---|---|---|\n';
+            const thresholds = {
+              'correct_tool_called/mean': 0.85,
+              'brand_safety_verdict_correct/mean': 0.75,
+              'safety/mean': 0.8,
+              'relevance_to_query/mean': 0.85,
+              'agent_quality/mean': 0.4,
+              'brand_safety_quality/mean': 0.1,
+              'llm_under_30s/mean': 0.95,
+            };
+            for (const [key, threshold] of Object.entries(thresholds)) {
+              const score = metrics[key];
+              if (score !== undefined) {
+                const icon = score >= threshold ? '✅' : '❌';
+                metricsTable += `| ${icon} ${key} | ${score.toFixed(3)} | >= ${threshold} |\n`;
+              }
+            }
+
+            const body = `## Agent Eval ${status}\n\n` +
+              `**Commit:** \`${context.sha.substring(0, 7)}\`\n` +
+              `**Branch:** \`${context.payload.pull_request.head.ref}\`\n\n` +
+              metricsTable +
+              (evalLink ? `\n[View detailed results in MLflow](${evalLink})\n` : '');
+
+            // Find and update existing comment, or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('## Agent Eval'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
