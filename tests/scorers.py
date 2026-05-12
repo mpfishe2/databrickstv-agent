@@ -75,8 +75,9 @@ def brand_safety_verdict_correct(
     # Look for the check_brand_safety tool span or any span whose output
     # contains the word VERDICT.
     if trace is None:
-        # Fall back to checking the output text directly
-        verdict_text = str(outputs)
+        # Fall back to checking the output text directly.
+        # outputs may be a plain string (from evaluate) or a dict (from other callers).
+        verdict_text = outputs if isinstance(outputs, str) else str(outputs.get("response", outputs))
         extracted = ""
         upper_text = verdict_text.upper()
         if "UNSAFE" in upper_text:

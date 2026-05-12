@@ -1,0 +1,42 @@
+name: Agent Eval
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  WAREHOUSE_ID: ${{ secrets.WAREHOUSE_ID }}
+
+jobs:
+  eval:
+    runs-on: self-hosted
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Deploy PR branch to staging ─────────────────────
+      # Validates that the app deploys correctly (app.yaml,
+      # requirements, compute). The eval itself runs the agent
+      # code locally, not against the staging app.
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Deploy to staging
+        run: databricks bundle deploy -t staging
+
+      # ── Run eval benchmark ──────────────────────────────
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run eval benchmark
+        run: pytest tests/eval_benchmark.py -v
