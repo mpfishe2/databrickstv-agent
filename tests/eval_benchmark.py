@@ -163,6 +163,11 @@ def test_agent_eval():
 
     print("Metrics:", results.metrics)
 
+    # Write metrics to a JSON file for the GitHub Actions PR comment step
+    import json as _json
+    with open("eval_metrics.json", "w") as f:
+        _json.dump(results.metrics, f)
+
     # ── Assertions (the gates) ───────────────────────────────
     # Metric keys use /mean (not /pass_rate) in MLflow 3.11.
     # Values are averaged scorer outputs: "yes"=1.0, "no"=0.0, "skipped" excluded.

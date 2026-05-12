@@ -55,11 +55,15 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('eval_output.txt', 'utf8');
 
-            // Extract metrics line
-            const metricsMatch = output.match(/Metrics: ({.*})/);
-            const metrics = metricsMatch ? JSON.parse(metricsMatch[1].replace(/'/g, '"')) : {};
+            // Read metrics from JSON file written by eval_benchmark.py
+            let metrics = {};
+            try {
+              metrics = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
+            } catch (e) {
+              console.log('Could not read eval_metrics.json:', e.message);
+            }
 
-            // Extract MLflow eval link
+            // Extract MLflow eval link from pytest output
             const linkMatch = output.match(/View the evaluation results at (https:\/\/\S+)/);
             const evalLink = linkMatch ? linkMatch[1] : null;
 
