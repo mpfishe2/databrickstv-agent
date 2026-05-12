@@ -5,3 +5,10 @@ __pycache__/
 .databricks/
 PROCESS_FLOW.md
 IMPLEMENTATION_GUIDE.html
+pyvenv.cfg
+/bin
+/include
+/lib
+/.venv
+.pytest_cache/
+STEP_FOUR_TESTING_SETUP.md
