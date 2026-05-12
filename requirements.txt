@@ -4,5 +4,7 @@ openai>=1.52.0
 mlflow[databricks]>=3.11.0
 setuptools>=69.0.0
 databricks-sdk>=0.30.0
+databricks-agents
+pyspark
 requests
 pytest
