@@ -36,7 +36,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip uninstall -y pyspark pyspark-connect pyspark-client databricks-connect 2>/dev/null || true
+          pip install -r requirements.txt
 
       - name: Run eval benchmark
         run: pytest tests/eval_benchmark.py -v
