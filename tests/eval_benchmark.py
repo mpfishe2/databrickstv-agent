@@ -165,10 +165,16 @@ def test_agent_eval():
 
     # Write metrics + run info to a JSON file for the GitHub Actions PR comment step
     import json as _json
+    run_name = None
+    if results.run_id:
+        try:
+            run = mlflow.MlflowClient().get_run(results.run_id)
+            run_name = run.info.run_name
+        except Exception:
+            pass
     eval_output = {
         "metrics": results.metrics,
-        "experiment_id": EVAL_MLFLOW_EXPERIMENT_ID,
-        "run_id": results.run_id if hasattr(results, 'run_id') else None,
+        "run_name": run_name,
     }
     with open("eval_metrics.json", "w") as f:
         _json.dump(eval_output, f)

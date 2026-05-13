@@ -62,23 +62,13 @@ jobs:
 
             // Read metrics + run info from JSON file written by eval_benchmark.py
             let metrics = {};
-            let experimentId = null;
-            let runId = null;
+            let runName = null;
             try {
               const evalData = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
               metrics = evalData.metrics || {};
-              experimentId = evalData.experiment_id || null;
-              runId = evalData.run_id || null;
+              runName = evalData.run_name || null;
             } catch (e) {
               console.log('Could not read eval_metrics.json:', e.message);
-            }
-
-            // Build MLflow experiment/run link
-            const host = process.env.DATABRICKS_HOST;
-            let evalLink = null;
-            if (host && experimentId) {
-              const base = `${host}/ml/experiments/${experimentId}`;
-              evalLink = runId ? `${base}/runs/${runId}` : base;
             }
 
             // Format metrics table and determine pass/fail from actual scores
@@ -108,9 +98,9 @@ jobs:
 
             const body = `## Agent Eval ${status}\n\n` +
               `**Commit:** \`${context.sha.substring(0, 7)}\`\n` +
-              `**Branch:** \`${context.payload.pull_request.head.ref}\`\n\n` +
-              metricsTable +
-              (evalLink ? `\n[View detailed results in MLflow](${evalLink})\n` : '');
+              `**Branch:** \`${context.payload.pull_request.head.ref}\`\n` +
+              (runName ? `**MLflow Run:** \`${runName}\`\n` : '') +
+              `\n` + metricsTable;
 
             // Find and update existing comment, or create new one
             const { data: comments } = await github.rest.issues.listComments({
