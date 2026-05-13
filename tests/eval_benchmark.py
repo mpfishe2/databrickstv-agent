@@ -199,7 +199,7 @@ def test_agent_eval():
         f"Agent quality too low: {m['agent_quality/mean']}"
 
     # Brand safety quality: detailed verdict formatting  (baseline: 0.23)
-    assert m["brand_safety_quality/mean"] >= 0.1, \
+    assert m["brand_safety_quality/mean"] >= 0.4, \
         f"Brand safety quality too low: {m['brand_safety_quality/mean']}"
 
     # Latency: LLM calls should complete within 30s  (baseline: 1.0)
