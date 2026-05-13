@@ -30,7 +30,9 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Deploy to staging
-        run: databricks bundle deploy -t staging
+        run: |
+          databricks bundle deploy -t staging
+          databricks apps deploy databrickstv-agent-staging --source-code-path /Workspace/Users/max.fisher@databricks.com/.bundle/databrickstv-agent-app/staging/files
 
       # ── Run eval benchmark ──────────────────────────────
 
@@ -43,6 +45,7 @@ jobs:
         run: |
           pip uninstall -y pyspark pyspark-connect pyspark-client databricks-connect 2>/dev/null || true
           pip install -r requirements.txt
+          pip install pytest databricks-agents databricks-connect==18.1.*
 
       - name: Run eval benchmark
         run: |
@@ -57,17 +60,16 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('eval_output.txt', 'utf8');
 
-            // Read metrics from JSON file written by eval_benchmark.py
+            // Read metrics + run info from JSON file written by eval_benchmark.py
             let metrics = {};
+            let runName = null;
             try {
-              metrics = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
+              const evalData = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
+              metrics = evalData.metrics || {};
+              runName = evalData.run_name || null;
             } catch (e) {
               console.log('Could not read eval_metrics.json:', e.message);
             }
-
-            // Extract MLflow eval link from pytest output
-            const linkMatch = output.match(/View the evaluation results at (https:\/\/\S+)/);
-            const evalLink = linkMatch ? linkMatch[1] : null;
 
             // Format metrics table and determine pass/fail from actual scores
             let metricsTable = '| Scorer | Score | Threshold |\n|---|---|---|\n';
@@ -96,9 +98,9 @@ jobs:
 
             const body = `## Agent Eval ${status}\n\n` +
               `**Commit:** \`${context.sha.substring(0, 7)}\`\n` +
-              `**Branch:** \`${context.payload.pull_request.head.ref}\`\n\n` +
-              metricsTable +
-              (evalLink ? `\n[View detailed results in MLflow](${evalLink})\n` : '');
+              `**Branch:** \`${context.payload.pull_request.head.ref}\`\n` +
+              (runName ? `**MLflow Run:** \`${runName}\`\n` : '') +
+              `\n` + metricsTable;
 
             // Find and update existing comment, or create new one
             const { data: comments } = await github.rest.issues.listComments({

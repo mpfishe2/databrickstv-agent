@@ -20,4 +20,6 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Deploy to production
-        run: databricks bundle deploy -t prod
+        run: |
+          databricks bundle deploy -t prod
+          databricks apps deploy databrickstv-agent-prod --source-code-path /Workspace/Users/max.fisher@databricks.com/.bundle/databrickstv-agent-app/prod/files
