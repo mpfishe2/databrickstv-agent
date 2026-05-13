@@ -69,11 +69,7 @@ jobs:
             const linkMatch = output.match(/View the evaluation results at (https:\/\/\S+)/);
             const evalLink = linkMatch ? linkMatch[1] : null;
 
-            // Build status
-            const passed = output.includes('1 passed');
-            const status = passed ? '✅ PASSED' : '❌ FAILED';
-
-            // Format metrics table
+            // Format metrics table and determine pass/fail from actual scores
             let metricsTable = '| Scorer | Score | Threshold |\n|---|---|---|\n';
             const thresholds = {
               'correct_tool_called/mean': 0.85,
@@ -84,13 +80,19 @@ jobs:
               'brand_safety_quality/mean': 0.1,
               'llm_under_30s/mean': 0.95,
             };
+            let passed = Object.keys(thresholds).length > 0;
             for (const [key, threshold] of Object.entries(thresholds)) {
               const score = metrics[key];
               if (score !== undefined) {
-                const icon = score >= threshold ? '✅' : '❌';
+                const met = score >= threshold;
+                if (!met) passed = false;
+                const icon = met ? '✅' : '❌';
                 metricsTable += `| ${icon} ${key} | ${score.toFixed(3)} | >= ${threshold} |\n`;
+              } else {
+                passed = false;
               }
             }
+            const status = passed ? '✅ PASSED' : '❌ FAILED';
 
             const body = `## Agent Eval ${status}\n\n` +
               `**Commit:** \`${context.sha.substring(0, 7)}\`\n` +
