@@ -45,6 +45,7 @@ jobs:
         run: |
           pip uninstall -y pyspark pyspark-connect pyspark-client databricks-connect 2>/dev/null || true
           pip install -r requirements.txt
+          pip install pytest databricks-agents databricks-connect==18.1.*
 
       - name: Run eval benchmark
         run: |
