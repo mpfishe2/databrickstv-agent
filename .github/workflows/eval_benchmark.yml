@@ -30,7 +30,9 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Deploy to staging
-        run: databricks bundle deploy -t staging
+        run: |
+          databricks bundle deploy -t staging
+          databricks apps deploy databrickstv-agent-staging --source-code-path /Workspace/Users/max.fisher@databricks.com/.bundle/databrickstv-agent-app/staging/files
 
       # ── Run eval benchmark ──────────────────────────────
 
@@ -57,17 +59,26 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('eval_output.txt', 'utf8');
 
-            // Read metrics from JSON file written by eval_benchmark.py
+            // Read metrics + run info from JSON file written by eval_benchmark.py
             let metrics = {};
+            let experimentId = null;
+            let runId = null;
             try {
-              metrics = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
+              const evalData = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
+              metrics = evalData.metrics || {};
+              experimentId = evalData.experiment_id || null;
+              runId = evalData.run_id || null;
             } catch (e) {
               console.log('Could not read eval_metrics.json:', e.message);
             }
 
-            // Extract MLflow eval link from pytest output
-            const linkMatch = output.match(/View the evaluation results at (https:\/\/\S+)/);
-            const evalLink = linkMatch ? linkMatch[1] : null;
+            // Build MLflow experiment/run link
+            const host = process.env.DATABRICKS_HOST;
+            let evalLink = null;
+            if (host && experimentId) {
+              const base = `${host}/ml/experiments/${experimentId}`;
+              evalLink = runId ? `${base}/runs/${runId}` : base;
+            }
 
             // Format metrics table and determine pass/fail from actual scores
             let metricsTable = '| Scorer | Score | Threshold |\n|---|---|---|\n';

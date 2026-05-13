@@ -163,10 +163,15 @@ def test_agent_eval():
 
     print("Metrics:", results.metrics)
 
-    # Write metrics to a JSON file for the GitHub Actions PR comment step
+    # Write metrics + run info to a JSON file for the GitHub Actions PR comment step
     import json as _json
+    eval_output = {
+        "metrics": results.metrics,
+        "experiment_id": EVAL_MLFLOW_EXPERIMENT_ID,
+        "run_id": results.run_id if hasattr(results, 'run_id') else None,
+    }
     with open("eval_metrics.json", "w") as f:
-        _json.dump(results.metrics, f)
+        _json.dump(eval_output, f)
 
     # ── Assertions (the gates) ───────────────────────────────
     # Metric keys use /mean (not /pass_rate) in MLflow 3.11.
@@ -195,10 +200,12 @@ def test_agent_eval():
         f"Relevance too low: {m['relevance_to_query/mean']}"
 
     # Agent quality: formatting, accuracy, no fabrication  (baseline: 0.57)
+    # adjust for demo
     assert m["agent_quality/mean"] >= 0.1, \
         f"Agent quality too low: {m['agent_quality/mean']}"
 
     # Brand safety quality: detailed verdict formatting  (baseline: 0.23)
+    # adjust for demo
     assert m["brand_safety_quality/mean"] >= 0.1, \
         f"Brand safety quality too low: {m['brand_safety_quality/mean']}"
 
