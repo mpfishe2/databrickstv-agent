@@ -11,4 +11,4 @@ pyvenv.cfg
 /lib
 /.venv
 .pytest_cache/
-STEP_FOUR_TESTING_SETUP.md
+STEP_*.md

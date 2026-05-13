@@ -45,7 +45,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run eval benchmark
-        run: pytest tests/eval_benchmark.py -v 2>&1 | tee eval_output.txt
+        run: |
+          set -o pipefail
+          pytest tests/eval_benchmark.py -v 2>&1 | tee eval_output.txt
 
       - name: Post eval results to PR
         if: always()
@@ -118,4 +120,8 @@ jobs:
                 issue_number: context.issue.number,
                 body: body,
               });
+            }
+
+            if (!passed) {
+              core.setFailed('Agent eval failed — one or more metrics below threshold');
             }
