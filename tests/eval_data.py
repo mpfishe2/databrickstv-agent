@@ -4,7 +4,7 @@ Each sample contains an ``inputs`` dict with a natural-language ``message``
 and an ``expectations`` dict describing which tool(s) the agent should invoke
 (and, where applicable, the expected verdict).
 
-Tables live in labelbricks_test_catalog.databrickstv:
+Tables live in <CATALOG>.<SCHEMA> (configured via .env):
     users              2000 rows   (U0001-U2000)
     viewer_segments      15 rows   (S01-S15)
     content_catalog     500 rows   (CT0001-CT0500)

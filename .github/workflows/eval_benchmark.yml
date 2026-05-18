@@ -8,6 +8,7 @@ env:
   DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
   DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
   WAREHOUSE_ID: ${{ secrets.WAREHOUSE_ID }}
+  BUNDLE_VAR_catalog_name: ${{ vars.CATALOG_NAME }}
 
 permissions:
   contents: read
@@ -32,7 +33,8 @@ jobs:
       - name: Deploy to staging
         run: |
           databricks bundle deploy -t staging
-          databricks apps deploy databrickstv-agent-staging --source-code-path /Workspace/Users/max.fisher@databricks.com/.bundle/databrickstv-agent-app/staging/files
+          FILES_PATH=$(databricks bundle validate -t staging --output json | python3 -c "import sys,json; print(json.load(sys.stdin)['workspace']['file_path'])")
+          databricks apps deploy databrickstv-agent-staging --source-code-path "$FILES_PATH"
 
       # ── Run eval benchmark ──────────────────────────────
 

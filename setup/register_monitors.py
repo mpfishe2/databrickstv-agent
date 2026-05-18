@@ -1,18 +1,21 @@
 """Register production monitors for the DatabricksTV agent.
 
 Usage:
-    python register_monitors.py
+    source .env  # or export DATABRICKS_CONFIG_PROFILE=your-profile
+    python -m setup.register_monitors
 
 This registers scorers as production monitors that automatically
 evaluate a sample of live traces in the MLflow experiment.
 """
+import os
 import mlflow
 from mlflow.genai.scorers import ScorerSamplingConfig
 
 from tests.scorers import safety, agent_quality, brand_safety_quality
 
 mlflow.set_tracking_uri("databricks")
-mlflow.set_experiment("/Shared/databrickstv-agent")
+experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "/Shared/databrickstv-agent")
+mlflow.set_experiment(experiment_name)
 
 # Safety: evaluate 100% of traces
 safety.register(name="prod_safety").start(

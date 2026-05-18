@@ -7,6 +7,7 @@ on:
 env:
   DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
   DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  BUNDLE_VAR_catalog_name: ${{ vars.CATALOG_NAME }}
 
 jobs:
   deploy:
@@ -22,4 +23,5 @@ jobs:
       - name: Deploy to production
         run: |
           databricks bundle deploy -t prod
-          databricks apps deploy databrickstv-agent-prod --source-code-path /Workspace/Users/max.fisher@databricks.com/.bundle/databrickstv-agent-app/prod/files
+          FILES_PATH=$(databricks bundle validate -t prod --output json | python3 -c "import sys,json; print(json.load(sys.stdin)['workspace']['file_path'])")
+          databricks apps deploy databrickstv-agent-prod --source-code-path "$FILES_PATH"

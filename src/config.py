@@ -28,7 +28,12 @@ def get_workspace_client() -> WorkspaceClient:
     """
     if IS_DATABRICKS_APP:
         return WorkspaceClient()
-    profile = os.environ.get("DATABRICKS_PROFILE", "fevm-labelbricks-test")
+    profile = os.environ.get("DATABRICKS_PROFILE")
+    if not profile:
+        raise RuntimeError(
+            "DATABRICKS_PROFILE is not set. "
+            "Copy .env.example to .env and set your Databricks CLI profile name."
+        )
     return WorkspaceClient(profile=profile)
 
 
@@ -69,6 +74,14 @@ def get_workspace_host() -> str:
 # App-level settings
 # ---------------------------------------------------------------------------
 
+def _require_env(name: str) -> str:
+    """Raise a clear error for missing required environment variables."""
+    raise RuntimeError(
+        f"{name} is not set. "
+        "Copy .env.example to .env and fill in the required values."
+    )
+
+
 @dataclass(frozen=True)
 class Settings:
     """Immutable application settings pulled from the environment."""
@@ -77,7 +90,7 @@ class Settings:
         default_factory=lambda: os.environ.get("WAREHOUSE_ID", os.getenv("WAREHOUSE_ID"))
     )
     catalog: str = field(
-        default_factory=lambda: os.environ.get("CATALOG", "labelbricks_test_catalog")
+        default_factory=lambda: os.environ.get("CATALOG") or _require_env("CATALOG")
     )
     schema: str = field(
         default_factory=lambda: os.environ.get("SCHEMA", "databrickstv")

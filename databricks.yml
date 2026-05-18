@@ -1,17 +1,26 @@
 bundle:
   name: databrickstv-agent-app
 
+variables:
+  catalog_name:
+    description: "Unity Catalog name for all tables"
+  schema_name:
+    description: "Schema within the catalog"
+    default: "databrickstv"
+  serving_endpoint:
+    description: "Foundation Model API serving endpoint"
+    default: "databricks-claude-sonnet-4-6"
+  mlflow_experiment_name:
+    description: "MLflow experiment path for tracing"
+    default: "/Shared/databrickstv-agent"
+
 targets:
   staging:
     default: true
     mode: development
-    workspace:
-      profile: fevm-labelbricks-test
 
   prod:
     mode: development
-    workspace:
-      profile: fevm-labelbricks-test
 
 resources:
   apps:
@@ -19,6 +28,27 @@ resources:
       name: "databrickstv-agent-${bundle.target}"
       description: "DatabricksTV content & ad recommendation agent"
       source_code_path: .
+      config:
+        command:
+          - uvicorn
+          - src.app:app
+          - --host
+          - "0.0.0.0"
+          - --port
+          - "8000"
+        env:
+          - name: WAREHOUSE_ID
+            value_from: "sql-warehouse"
+          - name: CATALOG
+            value: "${var.catalog_name}"
+          - name: SCHEMA
+            value: "${var.schema_name}"
+          - name: SERVING_ENDPOINT
+            value: "${var.serving_endpoint}"
+          - name: MLFLOW_EXPERIMENT_NAME
+            value: "${var.mlflow_experiment_name}"
+          - name: MLFLOW_TRACING_SQL_WAREHOUSE_ID
+            value_from: "sql-warehouse"
       permissions:
         - level: CAN_USE
           group_name: users
