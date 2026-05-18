@@ -1,7 +1,8 @@
 """Offline evaluation — run predictions and score results.
 
 Usage (local):
-    DATABRICKS_CONFIG_PROFILE=fevm-labelbricks-test python eval_runner.py
+    source .env  # or export DATABRICKS_CONFIG_PROFILE=your-profile
+    python -m tests.eval_runner
 
 This runner works locally by:
 1. Running all 30 predictions through the agent
@@ -12,6 +13,7 @@ For full LLM-judge scoring (Safety, Relevance, Guidelines), run this as a
 Databricks notebook where mlflow.genai.evaluate() has native trace support.
 """
 import json
+import os
 import time
 import mlflow
 
@@ -19,7 +21,8 @@ from src.agent import run_agent, SYSTEM_PROMPT
 from tests.eval_data import eval_data
 
 mlflow.set_tracking_uri("databricks")
-mlflow.set_experiment("/Shared/databrickstv-agent")
+experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "/Shared/databrickstv-agent")
+mlflow.set_experiment(experiment_name)
 
 
 def predict_fn(message: str) -> dict:
@@ -130,4 +133,4 @@ if __name__ == "__main__":
             json.dump(results, f, indent=2, default=str)
         mlflow.log_artifact("/tmp/eval_results.json")
 
-    print(f"\nResults logged to MLflow experiment /Shared/databrickstv-agent")
+    print(f"\nResults logged to MLflow experiment {experiment_name}")

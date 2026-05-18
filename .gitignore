@@ -12,3 +12,4 @@ pyvenv.cfg
 /.venv
 .pytest_cache/
 STEP_*.md
+/docs

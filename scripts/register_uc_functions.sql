@@ -1,6 +1,10 @@
 -- ============================================================================
 -- Unity Catalog function registrations for the DatabricksTV agent
--- Catalog: labelbricks_test_catalog   Schema: databrickstv
+--
+-- BEFORE RUNNING: Find and replace the catalog/schema below to match your
+-- environment. The defaults use placeholder values:
+--   Catalog: YOUR_CATALOG    -> replace with your UC catalog name
+--   Schema:  databrickstv    -> replace if you used a different schema
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------

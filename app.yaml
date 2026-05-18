@@ -6,16 +6,18 @@ command:
   - --port
   - "8000"
 
+# Environment variables are configured in databricks.yml via bundle variables.
+# If deploying without the bundle, set these manually:
 env:
   - name: WAREHOUSE_ID
     valueFrom: "sql-warehouse"
   - name: CATALOG
-    value: "labelbricks_test_catalog"
+    value: "CHANGE_ME"                     # Set to your Unity Catalog name
   - name: SCHEMA
     value: "databrickstv"
   - name: SERVING_ENDPOINT
     value: "databricks-claude-sonnet-4-6"
   - name: MLFLOW_EXPERIMENT_NAME
-    value: "/Shared/databrickstv-agent-v2"
+    value: "/Shared/databrickstv-agent"
   - name: MLFLOW_TRACING_SQL_WAREHOUSE_ID
     valueFrom: "sql-warehouse"

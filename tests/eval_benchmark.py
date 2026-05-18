@@ -15,7 +15,7 @@ Usage:
 # Resolution order:
 #   1. WAREHOUSE_ID env var (set by CI or user)
 #   2. Query the staging app's linked sql-warehouse resource (local dev)
-#   3. Hardcoded fallback
+#   3. Error if not found
 import json
 import os
 import subprocess
@@ -44,8 +44,11 @@ def _resolve_warehouse_id() -> str:
     except Exception:
         pass
 
-    # 3. Fallback
-    return "572f86cbedbdac89"
+    # 3. No fallback — require explicit configuration
+    raise RuntimeError(
+        "WAREHOUSE_ID is not set and could not be resolved from the staging app. "
+        "Set WAREHOUSE_ID in your .env file."
+    )
 
 
 _WAREHOUSE_ID = _resolve_warehouse_id()
@@ -56,6 +59,7 @@ os.environ.setdefault("MLFLOW_TRACING_SQL_WAREHOUSE_ID", _WAREHOUSE_ID)
 import mlflow
 
 from src.agent import run_agent, SYSTEM_PROMPT
+from src.config import settings
 from tests.scorers import (
     safety,
     relevance,
@@ -68,11 +72,11 @@ from tests.scorers import (
 
 # ── Configuration ────────────────────────────────────────────
 
-UC_DATASET = "labelbricks_test_catalog.databrickstv.eval_dataset"
+UC_DATASET = f"{settings.fqn}.eval_dataset"
 
-EVAL_MLFLOW_EXPERIMENT_ID = os.environ.get(
-    "MLFLOW_EXPERIMENT_ID",
-    "2293270006691634",
+EVAL_MLFLOW_EXPERIMENT_NAME = os.environ.get(
+    "MLFLOW_EXPERIMENT_NAME",
+    "/Shared/databrickstv-agent",
 )
 
 # Set EVAL_SAMPLE_LIMIT to run fewer samples for faster local testing.
@@ -144,7 +148,7 @@ ALL_SCORERS = [
 def test_agent_eval():
     """Run all eval samples through the agent and assert quality thresholds."""
     mlflow.set_tracking_uri("databricks")
-    mlflow.set_experiment(experiment_id=EVAL_MLFLOW_EXPERIMENT_ID)
+    mlflow.set_experiment(experiment_name=EVAL_MLFLOW_EXPERIMENT_NAME)
 
     # Load eval dataset from Unity Catalog
     dataset = mlflow.genai.datasets.get_dataset(UC_DATASET)
