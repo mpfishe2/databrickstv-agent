@@ -28,6 +28,10 @@ def get_workspace_client() -> WorkspaceClient:
     """
     if IS_DATABRICKS_APP:
         return WorkspaceClient()
+    # CI: token-based auth via DATABRICKS_HOST + DATABRICKS_TOKEN env vars
+    if os.environ.get("DATABRICKS_HOST") and os.environ.get("DATABRICKS_TOKEN"):
+        return WorkspaceClient()
+    # Local dev: CLI profile
     profile = os.environ.get("DATABRICKS_PROFILE")
     if not profile:
         raise RuntimeError(
