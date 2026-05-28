@@ -12,7 +12,7 @@ env:
   - name: WAREHOUSE_ID
     valueFrom: "sql-warehouse"
   - name: CATALOG
-    value: "CHANGE_ME"                     # Set to your Unity Catalog name
+    value: "labelbricks_test_catalog"                     # Set to your Unity Catalog name
   - name: SCHEMA
     value: "databrickstv"
   - name: SERVING_ENDPOINT
