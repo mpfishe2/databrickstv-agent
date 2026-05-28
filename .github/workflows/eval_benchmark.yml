@@ -10,6 +10,7 @@ env:
   WAREHOUSE_ID: ${{ secrets.WAREHOUSE_ID }}
   CATALOG: ${{ vars.CATALOG_NAME }}
   BUNDLE_VAR_catalog_name: ${{ vars.CATALOG_NAME }}
+  BUNDLE_VAR_warehouse_id: ${{ secrets.WAREHOUSE_ID }}
 
 permissions:
   contents: read
