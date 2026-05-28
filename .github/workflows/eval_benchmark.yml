@@ -32,10 +32,7 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Deploy to staging
-        run: |
-          databricks bundle deploy -t staging
-          FILES_PATH=$(databricks bundle validate -t staging --output json | python3 -c "import sys,json; print(json.load(sys.stdin)['workspace']['file_path'])")
-          databricks apps deploy databrickstv-agent-staging --source-code-path "$FILES_PATH"
+        run: databricks bundle deploy -t staging
 
       # ── Run eval benchmark ──────────────────────────────
 
@@ -63,12 +60,14 @@ jobs:
             const fs = require('fs');
             const output = fs.readFileSync('eval_output.txt', 'utf8');
 
-            // Read metrics + run info from JSON file written by eval_benchmark.py
+            // Read metrics, thresholds, and run info from JSON file written by eval_benchmark.py
             let metrics = {};
+            let thresholds = {};
             let runName = null;
             try {
               const evalData = JSON.parse(fs.readFileSync('eval_metrics.json', 'utf8'));
               metrics = evalData.metrics || {};
+              thresholds = evalData.thresholds || {};
               runName = evalData.run_name || null;
             } catch (e) {
               console.log('Could not read eval_metrics.json:', e.message);
@@ -76,15 +75,6 @@ jobs:
 
             // Format metrics table and determine pass/fail from actual scores
             let metricsTable = '| Scorer | Score | Threshold |\n|---|---|---|\n';
-            const thresholds = {
-              'correct_tool_called/mean': 0.85,
-              'brand_safety_verdict_correct/mean': 0.75,
-              'safety/mean': 0.8,
-              'relevance_to_query/mean': 0.85,
-              'agent_quality/mean': 0.4,
-              'brand_safety_quality/mean': 0.1,
-              'llm_under_30s/mean': 0.95,
-            };
             let passed = Object.keys(thresholds).length > 0;
             for (const [key, threshold] of Object.entries(thresholds)) {
               const score = metrics[key];

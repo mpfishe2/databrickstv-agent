@@ -13,6 +13,8 @@ variables:
   mlflow_experiment_name:
     description: "MLflow experiment path for tracing"
     default: "/Shared/databrickstv-agent"
+  warehouse_id:
+    description: "SQL warehouse ID the app connects to"
 
 targets:
   staging:
@@ -28,6 +30,11 @@ resources:
       name: "databrickstv-agent-${bundle.target}"
       description: "DatabricksTV content & ad recommendation agent"
       source_code_path: .
+      resources:
+        - name: "sql-warehouse"
+          sql_warehouse:
+            id: "${var.warehouse_id}"
+            permission: "CAN_USE"
       config:
         command:
           - uvicorn
