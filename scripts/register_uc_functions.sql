@@ -12,7 +12,7 @@
 --    Cross-checks an ad campaign's safety requirements against a content
 --    item's warnings. Also surfaces any prior human review verdicts.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION labelbricks_test_catalog.databrickstv.check_brand_safety(
+CREATE OR REPLACE FUNCTION YOUR_CATALOG.databrickstv.check_brand_safety(
   campaign_id STRING,
   content_id STRING
 )
@@ -25,7 +25,7 @@ AS $$
   # Query campaign
   camp_rows = spark.sql(f"""
     SELECT campaign_id, campaign_name, brand_name, content_safety_requirements
-    FROM labelbricks_test_catalog.databrickstv.ad_campaigns
+    FROM YOUR_CATALOG.databrickstv.ad_campaigns
     WHERE campaign_id = '{campaign_id}'
   """).collect()
   if not camp_rows:
@@ -35,7 +35,7 @@ AS $$
   # Query content
   content_rows = spark.sql(f"""
     SELECT content_id, title, genre, rating, content_warnings, ad_tier
-    FROM labelbricks_test_catalog.databrickstv.content_catalog
+    FROM YOUR_CATALOG.databrickstv.content_catalog
     WHERE content_id = '{content_id}'
   """).collect()
   if not content_rows:
@@ -57,7 +57,7 @@ AS $$
   # Check prior human reviews
   review_rows = spark.sql(f"""
     SELECT is_brand_safe, safety_score, reviewer_notes
-    FROM labelbricks_test_catalog.databrickstv.content_ad_reviews
+    FROM YOUR_CATALOG.databrickstv.content_ad_reviews
     WHERE campaign_id = '{campaign_id}' AND content_id = '{content_id}'
     ORDER BY review_date DESC LIMIT 1
   """).collect()
@@ -101,7 +101,7 @@ $$;
 --    Records user feedback about a recommendation. Currently returns a
 --    confirmation string; a future version would INSERT into a feedback table.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION labelbricks_test_catalog.databrickstv.log_feedback(
+CREATE OR REPLACE FUNCTION YOUR_CATALOG.databrickstv.log_feedback(
   recommendation_context STRING,
   feedback_type STRING,
   comment STRING

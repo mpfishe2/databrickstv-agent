@@ -21,7 +21,4 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Deploy to production
-        run: |
-          databricks bundle deploy -t prod
-          FILES_PATH=$(databricks bundle validate -t prod --output json | python3 -c "import sys,json; print(json.load(sys.stdin)['workspace']['file_path'])")
-          databricks apps deploy databrickstv-agent-prod --source-code-path "$FILES_PATH"
+        run: databricks bundle deploy -t prod
