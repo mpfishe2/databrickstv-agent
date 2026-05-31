@@ -13,3 +13,4 @@ pyvenv.cfg
 .pytest_cache/
 STEP_*.md
 /docs
+real_prompt.txt
