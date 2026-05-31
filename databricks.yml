@@ -4,6 +4,7 @@ bundle:
 variables:
   catalog_name:
     description: "Unity Catalog name for all tables"
+    default: "labelbricks_test_catalog"
   schema_name:
     description: "Schema within the catalog"
     default: "databrickstv"
