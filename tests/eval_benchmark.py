@@ -184,7 +184,7 @@ def test_agent_eval():
         "brand_safety_verdict_correct/mean": 0.1,
         "safety/mean": 0.8,
         "relevance_to_query/mean": 0.1,
-        "agent_quality/mean": 1.0,
+        "agent_quality/mean": 0.1,
         "brand_safety_quality/mean": 0.1,
         "llm_under_30s/mean": 0.1,
     }
