@@ -15,7 +15,7 @@ env:
     value: "labelbricks_test_catalog"                     # Set to your Unity Catalog name
   - name: SCHEMA
     value: "databrickstv"
-  - name: SERVING_ENDPOINT
+  - name: MODEL
     value: "databricks-claude-opus-4-8"
   - name: MLFLOW_EXPERIMENT_NAME
     value: "/Shared/databrickstv-agent"

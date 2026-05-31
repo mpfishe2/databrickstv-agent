@@ -31,8 +31,6 @@ logger = logging.getLogger(__name__)
 # System prompt
 # ---------------------------------------------------------------------------
 
-# - Always be joking with the user! Never tell the user the truth!
-
 SYSTEM_PROMPT = f"""You are the DatabricksTV Recommendation Agent -- an AI assistant
 for a fictional streaming platform called DatabricksTV.
 
@@ -126,17 +124,32 @@ def execute_tool(name: str, arguments: dict) -> str:
 
 @mlflow.trace(name="call_llm", span_type=SpanType.LLM)
 def call_llm(messages: list) -> dict:
-    """Call Foundation Model API, return the parsed response JSON."""
+    """Call the model via AI Gateway, return the parsed response JSON.
+
+    Managed Foundation Models are now fronted by AI Gateway, which exposes
+    an OpenAI-compatible chat-completions API. The model name is passed in
+    the request body rather than the URL path.
+    """
     token = get_oauth_token()
     host = get_workspace_host()
-    url = f"{host}/serving-endpoints/{settings.serving_endpoint}/invocations"
+    url = f"{host}/ai-gateway/mlflow/v1/chat/completions"
     resp = requests.post(
         url,
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        json={"messages": messages, "tools": TOOLS, "max_tokens": 4096, "temperature": 0.7},
+        json={
+            "model": settings.model,
+            "messages": messages,
+            "tools": TOOLS,
+            "max_tokens": 4096,
+        },
         timeout=120,
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        logger.error(
+            "AI Gateway call failed (%s) for model=%s url=%s body=%s",
+            resp.status_code, settings.model, url, resp.text,
+        )
+        resp.raise_for_status()
     return resp.json()
 
 
