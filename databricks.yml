@@ -8,8 +8,8 @@ variables:
   schema_name:
     description: "Schema within the catalog"
     default: "databrickstv"
-  serving_endpoint:
-    description: "Foundation Model API serving endpoint"
+  model:
+    description: "Model id served via AI Gateway (chat-completions)"
     default: "databricks-claude-sonnet-4-6"
   mlflow_experiment_name:
     description: "MLflow experiment path for tracing"
@@ -51,8 +51,8 @@ resources:
             value: "${var.catalog_name}"
           - name: SCHEMA
             value: "${var.schema_name}"
-          - name: SERVING_ENDPOINT
-            value: "${var.serving_endpoint}"
+          - name: MODEL
+            value: "${var.model}"
           - name: MLFLOW_EXPERIMENT_NAME
             value: "${var.mlflow_experiment_name}"
           - name: MLFLOW_TRACING_SQL_WAREHOUSE_ID

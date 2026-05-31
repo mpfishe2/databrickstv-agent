@@ -45,7 +45,7 @@ Every value you need to configure, where to set it, and how to find it:
 | `CATALOG` | `.env` + `databricks.yml` | Unity Catalog explorer in workspace sidebar | Yes |
 | `WAREHOUSE_ID` | `.env` + GitHub secret | SQL Warehouses page -> click warehouse -> ID in the URL bar | Yes |
 | `SCHEMA` | `.env` (optional) | Defaults to `databrickstv`. Only change if you used a different schema name for data tables | No |
-| `SERVING_ENDPOINT` | `.env` (optional) | Serving endpoints page in workspace. Default: `databricks-claude-sonnet-4-6` | No |
+| `MODEL` | `.env` (optional) | Model id served via AI Gateway. Default: `databricks-claude-sonnet-4-6` | No |
 | `MLFLOW_EXPERIMENT_NAME` | `.env` (optional) | Default: `/Shared/databrickstv-agent`. Change if you want a different experiment path | No |
 | `DATABRICKS_HOST` | GitHub repo secret | Your workspace URL (e.g., `https://xxx.cloud.databricks.com`) | CI/CD only |
 | `DATABRICKS_TOKEN` | GitHub repo secret | Settings -> Developer -> Access Tokens in workspace | CI/CD only |

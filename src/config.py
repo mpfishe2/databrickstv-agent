@@ -99,14 +99,9 @@ class Settings:
     schema: str = field(
         default_factory=lambda: os.environ.get("SCHEMA", "databrickstv")
     )
-    model_name: str = field(
+    model: str = field(
         default_factory=lambda: os.environ.get(
-            "MODEL_NAME", "databricks-meta-llama-3-3-70b-instruct"
-        )
-    )
-    serving_endpoint: str = field(
-        default_factory=lambda: os.environ.get(
-            "SERVING_ENDPOINT", "databricks-claude-sonnet-4-6"
+            "MODEL", "databricks-claude-sonnet-4-6"
         )
     )
 
